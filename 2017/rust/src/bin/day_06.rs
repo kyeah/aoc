@@ -5,11 +5,8 @@ use aoc::utils;
 use std::collections::HashSet;
 
 fn main() {
-    let input = include_str!("../../res/day_06/input.txt");
-
-    let mut banks: Vec<usize> = utils::parsed_row(
-        input.lines().next().expect("no input provided")
-    ).collect();
+    let input = utils::arg_or_default(include_str!("../../res/day_06/input.txt"));
+    let mut banks: Vec<usize> = utils::parsed_row(&input).collect();
 
     let iters = redistribute_until_loop(&mut banks);
     println!("part 1: {}", iters);

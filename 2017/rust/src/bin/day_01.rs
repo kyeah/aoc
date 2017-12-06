@@ -9,10 +9,10 @@ fn main() {
 }
 
 fn consecutive_sum(captcha: &str) -> u32 {
-    let mut chars = utils::digits(captcha);
-    let first_val = chars.next().unwrap_or(0);
+    let mut digits = utils::digits(captcha);
+    let first_val = digits.next().unwrap_or(0);
 
-    let (sum, last_val) = chars.fold((0, first_val), |(sum, prev_val), next_val| {
+    let (sum, last_val) = digits.fold((0, first_val), |(sum, prev_val), next_val| {
         if prev_val == next_val {
             (sum + next_val, next_val)
         } else {
