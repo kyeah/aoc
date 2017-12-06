@@ -1,8 +1,7 @@
 extern crate aoc;
 extern crate itertools;
 
-use aoc::day_04;
-
+use aoc::utils;
 use itertools::Itertools;
 
 fn main() {
@@ -11,22 +10,22 @@ fn main() {
     let part1 = input
         .lines()
         .filter(|line|
-                line.trim().split_whitespace().count() ==
-                line.trim().split_whitespace().unique().count()
+                utils::words(&line).count() ==
+                utils::words(&line).unique().count()
         )
         .count();
 
     println!("part 1: {:?}", part1);
 
-    let part1 = input
+    let part2 = input
         .lines()
         .filter(|line|
-                line.trim().split_whitespace().map(sorted_chars).count() ==
-                line.trim().split_whitespace().map(sorted_chars).unique().count()
+                utils::words(&line).map(sorted_chars).count() ==
+                utils::words(&line).map(sorted_chars).unique().count()
         )
         .count();
 
-    println!("part 1: {:?}", part1);
+    println!("part 2: {:?}", part2);
 }
 
 pub fn sorted_chars<'a>(s: &str) -> Vec<char> {

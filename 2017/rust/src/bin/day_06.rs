@@ -1,19 +1,15 @@
 extern crate aoc;
 extern crate itertools;
 
-use aoc::day_06;
+use aoc::utils;
 use std::collections::HashSet;
 
 fn main() {
     let input = include_str!("../../res/day_06/input.txt");
 
-    let mut banks: Vec<usize> = input
-        .lines()
-        .next()
-        .expect("no input provided")
-        .split_whitespace()
-        .map(|s| s.parse().unwrap())
-        .collect();
+    let mut banks: Vec<usize> = utils::parsed_row(
+        input.lines().next().expect("no input provided")
+    ).collect();
 
     let iters = redistribute_until_loop(&mut banks);
     println!("part 1: {}", iters);
