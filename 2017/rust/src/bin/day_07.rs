@@ -10,11 +10,11 @@ fn main() {
 
     let nodes = input
         .lines()
-        .map(|line| parse_node(&line))
+        .map(parse_node)
         .collect::<HashMap<_,_>>();
 
     let leaves = nodes.values()
-        .flat_map(|n| n.children.clone())
+        .flat_map(|n| &n.children)
         .unique()
         .collect::<Vec<_>>();
 
@@ -24,21 +24,23 @@ fn main() {
         .clone();
 
     println!("part 1: {:?}", &head_name);
-    weight_sum(&nodes, &head_name).expect("rip");
+    weight_sum(&nodes, &head_name).expect("my job here is donezo");
 }
 
-fn weight_sum<'a>(nodes: &HashMap<String, Node>, node: &str) -> Result<usize, String> {
-    let child_names = nodes[node].children.clone();
-    let child_sums = child_names.iter()
-        .map(|child| (child, weight_sum(nodes, child).expect("rip")))
+fn weight_sum<'a>(nodes: &HashMap<String, Node>, node_name: &str) -> Result<usize, String> {
+    let node = &nodes[node_name];
+
+    let child_sums = node.children.iter()
+        .map(|child| (child, weight_sum(nodes, child).expect("my job here is donezo")))
         .collect::<HashMap<_,_>>();
 
     if child_sums.values().unique().count() > 1 {
         println!("part 2: {:?}", child_sums);
+        println!("yeah that's right do some manual work");
         return Err("bye".to_owned());
     }
 
-    Ok(nodes[node].weight + child_sums.values().sum::<usize>())
+    Ok(node.weight + child_sums.values().sum::<usize>())
 }
 
 fn parse_node(s: &str) -> (String, Node) {
