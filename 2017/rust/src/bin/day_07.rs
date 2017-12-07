@@ -8,28 +8,29 @@ use std::collections::HashMap;
 fn main() {
     let input = include_str!("../../res/day_07/input.txt");
 
-    let mut nodes = input
+    let nodes = input
         .lines()
         .map(|line| parse_node(&line))
         .collect::<HashMap<_,_>>();
 
-    for (name, node) in nodes.clone().iter() {
-        for child_name in &node.children {
-            println!("{}", child_name);
-            nodes.get_mut(child_name).unwrap().parent = Some(name.to_owned());
-        }
-    }
+    let leaves = nodes.values()
+        .flat_map(|n| n.children.clone())
+        .unique()
+        .collect::<Vec<_>>();
 
-    let head_name = nodes.values().find(|n| n.parent.is_none()).map(|n| n.name.to_owned()).expect("lol");
+    let head_name = nodes.keys()
+        .find(|n| !leaves.contains(&n))
+        .expect("lol")
+        .clone();
+
     println!("part 1: {:?}", &head_name);
-
-    calculate_weight_sum_helper(&mut nodes, &head_name).expect("rip");
+    weight_sum(&nodes, &head_name).expect("rip");
 }
 
-fn calculate_weight_sum_helper<'a>(nodes: &mut HashMap<String, Node>, node: &str) -> Result<usize, String> {
+fn weight_sum<'a>(nodes: &HashMap<String, Node>, node: &str) -> Result<usize, String> {
     let child_names = nodes[node].children.clone();
     let child_sums = child_names.iter()
-        .map(|child| (child, calculate_weight_sum_helper(nodes, child).expect("rip")))
+        .map(|child| (child, weight_sum(nodes, child).expect("rip")))
         .collect::<HashMap<_,_>>();
 
     if child_sums.values().unique().count() > 1 {
@@ -48,15 +49,17 @@ fn parse_node(s: &str) -> (String, Node) {
         .expect("no row input");
 
     let children = parts.next()
-        .map(|s| s.split_whitespace().map(|s| s.replace(",", "").to_owned()).collect())
+        .map(|s| s.split(",").map(|word| word.trim().to_owned()).collect())
         .unwrap_or_else(|| Vec::new());
 
     let name = node_parts.next().expect("no name provided");
     let weight = node_parts
-        .next().expect("no weight provided")
+        .next()
+        .expect("no weight provided")
         .replace("(", "")
         .replace(")", "")
-        .parse().expect("not a number");
+        .parse()
+        .expect("not a number");
 
     (name.to_owned(), Node::new(name.to_owned(), weight, children))
 }
@@ -65,7 +68,6 @@ fn parse_node(s: &str) -> (String, Node) {
 struct Node {
     name: String,
     weight: usize,
-    parent: Option<String>,
     children: Vec<String>,
 }
 
@@ -74,7 +76,6 @@ impl Node {
         Node {
             name: name,
             weight: weight,
-            parent: None,
             children: children,
         }
     }
