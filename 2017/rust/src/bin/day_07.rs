@@ -1,7 +1,6 @@
 extern crate aoc;
 extern crate itertools;
 
-use aoc::utils;
 use itertools::Itertools;
 use std::collections::HashMap;
 
@@ -27,7 +26,7 @@ fn main() {
     weight_sum(&nodes, &head_name).expect("my job here is donezo");
 }
 
-fn weight_sum<'a>(nodes: &HashMap<String, Node>, node_name: &str) -> Result<usize, String> {
+fn weight_sum(nodes: &HashMap<String, Node>, node_name: &str) -> Result<usize, String> {
     let node = &nodes[node_name];
 
     let child_sums = node.children.iter()
