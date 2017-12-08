@@ -17,7 +17,7 @@ fn main() {
         .map(|tuple| (tuple.0.to_owned(), 0))
         .collect();
 
-    let mut global_max = -1;
+    let mut global_max = 0;
     for (_, f) in instructions {
         f(&mut registers);
         global_max = max(global_max, register_max(&registers));
