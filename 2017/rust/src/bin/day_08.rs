@@ -12,21 +12,27 @@ fn main() {
         .map(parse_instruction)
         .collect();
 
-    let mut registers: HashMap<String, i32> = instructions.iter()
+    let mut registers: HashMap<String, i32> = instructions
+        .iter()
         .map(|tuple| (tuple.0.to_owned(), 0))
         .collect();
 
-    let mut max = -1;
+    let mut global_max = -1;
     for (_, f) in instructions {
         f(&mut registers);
-        let iter_max = *registers.values().max().unwrap();
-        if iter_max > max {
-            max = iter_max;
-        }
+        global_max = max(global_max, register_max(&registers));
     }
 
-    println!("part 1: {:?}", registers.values().max().unwrap());
-    println!("part 2: {:?}", max);
+    println!("part 1: {:?}", register_max(&registers));
+    println!("part 2: {:?}", global_max);
+}
+
+fn register_max(registers: &HashMap<String, i32>) -> i32 {
+    *registers.values().max().unwrap()
+}
+
+fn max(a: i32, b: i32) -> i32 {
+    if a > b { a } else { b }
 }
 
 // Return a tuple of the register name + an instruction application fn
