@@ -48,7 +48,7 @@ fn parse_instruction(s: &str) -> (String, Box<Fn(&mut HashMap<String, i32>) -> (
 
     (register.to_owned(), Box::new(move |ref mut registers| {
         if ap(registers[&cmp_reg], &cmp_str, cmp_val) {
-            *registers.get_mut(&register).unwrap() += incr;
+            utils::add(registers, &register, incr);
         }
     }))
 }

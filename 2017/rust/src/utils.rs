@@ -1,6 +1,9 @@
 use std::env;
 use std::str::FromStr;
 use std::fmt::Debug;
+use std::ops::{Add,Sub};
+use std::collections::HashMap;
+use std::hash::Hash;
 
 pub fn arg_or_default(default: &str) -> String {
     env::args()
@@ -35,4 +38,26 @@ pub fn parsed_col<'a, T>(s: &'a str) -> Box<Iterator<Item=T> + 'a>
     where T: FromStr,
           <T as FromStr>::Err: Debug {
     Box::new(s.lines().map(|s| s.parse::<T>().unwrap()))
+}
+
+pub fn add<'a, K,V>(map: &mut HashMap<K,V>, k: &K, v: V)
+    where K : Eq + Hash,
+          V: Add<Output=V> + Clone
+{
+    let x = map[&k].clone();
+    *map.get_mut(&k).unwrap() = x + v;
+}
+
+pub fn sub<'a, K,V>(map: &mut HashMap<K,V>, k: &K, v: V)
+    where K : Eq + Hash,
+          V: Sub<Output=V> + Clone
+{
+    let x = map[&k].clone();
+    *map.get_mut(&k).unwrap() = x - v;
+}
+
+pub fn set<'a, K,V>(map: &mut HashMap<K,V>, k: &K, v: V)
+    where K : Eq + Hash
+{
+    *map.get_mut(&k).unwrap() = v;
 }
