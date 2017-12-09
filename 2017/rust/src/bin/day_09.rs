@@ -5,7 +5,6 @@ extern crate regex;
 use aoc::utils;
 use regex::Regex;
 
-
 fn main() {
     let input = utils::arg_or_default(include_str!("../../res/day_09/input.txt"));
     let re = Regex::new(r"!.").unwrap();
