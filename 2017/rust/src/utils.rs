@@ -55,9 +55,3 @@ pub fn sub<'a, K,V>(map: &mut HashMap<K,V>, k: &K, v: V)
     let x = map[&k].clone();
     *map.get_mut(&k).unwrap() = x - v;
 }
-
-pub fn set<'a, K,V>(map: &mut HashMap<K,V>, k: &K, v: V)
-    where K : Eq + Hash
-{
-    *map.get_mut(&k).unwrap() = v;
-}
