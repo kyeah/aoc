@@ -7,9 +7,9 @@ use std::collections::HashMap;
 fn main() {
     let input = utils::arg_or_default(include_str!("../../res/day_11/input.txt"));
 
-    let mut dirs = HashMap::new();
+    let mut dirs: HashMap<&str, isize> = HashMap::new();
     for key in vec!["n", "s", "sw", "se", "nw", "ne"] {
-        dirs.entry(key).or_insert(0 as isize);
+        dirs.insert(key, 0);
     }
 
     let mut max_dist = 0;
