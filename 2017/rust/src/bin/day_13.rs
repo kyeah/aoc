@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 
 fn main() {
-    let input = include_str!("../../res/day_14/input.txt");
+    let input = include_str!("../../res/day_13/input.txt");
     println!("part 1: {}", penalty(input, 0, false));
     println!("part 2: {}", part_2(input));
 }
