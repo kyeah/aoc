@@ -55,3 +55,49 @@ pub fn sub<'a, K,V>(map: &mut HashMap<K,V>, k: &K, v: V)
     let x = map[&k].clone();
     *map.get_mut(&k).unwrap() = x - v;
 }
+
+pub fn reverse(vals: &mut Vec<usize>, pos: usize, length: usize) {
+    for i in 0..(length / 2) {
+        let start_pos = (pos + i) % vals.len();
+        let end_pos   = (pos + length - 1 - i) % vals.len();
+        let start_val = vals[start_pos];
+        let end_val   = vals[end_pos];
+
+        vals[start_pos] = end_val;
+        vals[end_pos] = start_val;
+    }
+}
+
+pub fn knot_bytes<'a>(input: &str) -> Vec<u8> {
+    let ascii_lengths: Vec<usize> =
+        [input.as_bytes(), &[17, 31, 73, 47, 23]]
+          .concat()
+          .iter()
+          .map(|v| *v as usize)
+          .collect();
+
+    let vals = run_rounds(64, &ascii_lengths);
+    vals.chunks(16)
+        .map(|arr| {
+            let mut i = arr.iter();
+            let first = i.next().unwrap();
+            i.fold(*first, |a, b| a ^ b) as u8
+        })
+        .collect()
+}
+
+pub fn run_rounds(n: usize, lengths: &Vec<usize>) -> Vec<usize> {
+    let mut pos = 0;
+    let mut skip_size = 0;
+    let mut vals = (0..256).collect::<Vec<usize>>();
+
+    for _ in 0..n {
+        for length in lengths {
+            reverse(&mut vals, pos, *length);
+            pos = (pos + *length + skip_size) % vals.len();
+            skip_size += 1;
+        }
+    }
+
+    vals
+}
