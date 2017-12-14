@@ -5,6 +5,8 @@ use std::ops::{Add,Sub};
 use std::collections::HashMap;
 use std::hash::Hash;
 
+use itertools::Itertools;
+
 pub fn arg_or_default(default: &str) -> String {
     env::args()
         .nth(1)
@@ -68,7 +70,7 @@ pub fn reverse(vals: &mut Vec<usize>, pos: usize, length: usize) {
     }
 }
 
-pub fn knot_bytes<'a>(input: &str) -> Vec<u8> {
+pub fn knot_hash(input: &str) -> String {
     let ascii_lengths: Vec<usize> =
         [input.as_bytes(), &[17, 31, 73, 47, 23]]
           .concat()
@@ -76,17 +78,18 @@ pub fn knot_bytes<'a>(input: &str) -> Vec<u8> {
           .map(|v| *v as usize)
           .collect();
 
-    let vals = run_rounds(64, &ascii_lengths);
-    vals.chunks(16)
+    let vals = run_knot_rounds(64, &ascii_lengths);
+    let bytes = vals.chunks(16)
         .map(|arr| {
             let mut i = arr.iter();
             let first = i.next().unwrap();
             i.fold(*first, |a, b| a ^ b) as u8
-        })
-        .collect()
+        });
+
+    format!("{:02x}", bytes.format(""))
 }
 
-pub fn run_rounds(n: usize, lengths: &Vec<usize>) -> Vec<usize> {
+pub fn run_knot_rounds(n: usize, lengths: &Vec<usize>) -> Vec<usize> {
     let mut pos = 0;
     let mut skip_size = 0;
     let mut vals = (0..256).collect::<Vec<usize>>();
