@@ -16,7 +16,7 @@ fn generate(prev: u64, factor: u64) -> u64 {
 fn generate_picky(prev: u64, factor: u64, mult: u64) -> u64 {
     let mut val = generate(prev, factor);
     while val % mult != 0 {
-        val = generate(prev, factor);
+        val = generate(val, factor);
     }
     val
 }
