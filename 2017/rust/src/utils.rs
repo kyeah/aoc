@@ -26,6 +26,10 @@ pub fn words<'a>(s: &'a str) -> Box<Iterator<Item=&str> + 'a> {
     Box::new(s.trim().split_whitespace())
 }
 
+pub fn split<'a>(s: &'a str, delim: &'a str) -> Box<Iterator<Item=&'a str> + 'a> {
+    Box::new(s.trim().split(delim))
+}
+
 pub fn digits<'a>(s: &'a str) -> Box<Iterator<Item=u32> + 'a> {
     Box::new(s.chars().map(|c| c.to_digit(10).unwrap()))
 }
