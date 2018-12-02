@@ -14,7 +14,7 @@ def p2
   loop do
     return sum if input.find do |x|
       sum += x
-      seen.include?(sum).tap{ seen.add(sum) }
+      !seen.add?(sum)
     end
   end
 end
