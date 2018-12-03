@@ -1,6 +1,4 @@
-require 'ostruct'
-
-class Claim < OpenStruct
+class Claim < Struct.new(:id, :x, :y, :width, :height, :xend, :yend)
   def xrange
     (self.x...self.xend)
   end
@@ -16,19 +14,14 @@ def input
     xy = items[2].split(',')
     wh = items[3].split('x')
 
-    x = Integer(xy[0])
-    y = Integer(xy[1][0..-2])
-    width = Integer(wh[0])
-    height = Integer(wh[1])
-
     Claim.new(
-      id: items[0][1..-1],
-      x: x,
-      y: y,
-      width: width,
-      height: height,
-      xend: x + width,
-      yend: y + height
+      id     = items[0][1..-1],
+      x      = Integer(xy[0]),
+      y      = Integer(xy[1][0..-2]),
+      width  = Integer(wh[0]),
+      height = Integer(wh[1]),
+      x + width,
+      y + height
     )
   end
 end
