@@ -30,8 +30,7 @@ def hitmap
   input.reduce({}) do |map, claim|
     claim.xrange.each do |x|
       claim.yrange.each do |y|
-        map[x] = {} if !map[x]
-        map[x][y] = 0 if !map[x][y]
+        map[x] ||= Hash.new { 0 }
         map[x][y] += 1
       end
     end
