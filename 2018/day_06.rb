@@ -40,6 +40,8 @@ class Grid
         end
       end
     end
+
+    self
   end
 
   def unbounded
@@ -69,14 +71,9 @@ def input
 end
 
 def p1
-  grid = Grid.new(input)
-  grid.mark
-
-  # grab unbounded ids
-
-  grid.points.
+  grid = Grid.new(input).mark.points.
     select{|p| !grid.unbounded.include?(p.id) }.
-    sort_by(&:sum).last.sum
+    map(&:sum).sort.last
 end
 
 puts p1
