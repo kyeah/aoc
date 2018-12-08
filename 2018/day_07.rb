@@ -39,27 +39,26 @@ class Vertex < Struct.new(:id, :parents, :children)
 end
 
 def input
-  graph = Graph.new
-  File.readlines('./res/day_07.txt').each do |line|
-    graph.add_edge(line.split[1], line.split[7])
+  Graph.new.tap do |graph|
+    File.readlines('./res/day_07.txt').each do |line|
+      graph.add_edge(line.split[1], line.split[7])
+    end
   end
+end
 
+def p1
+  graph = input
   done = Array.new
   queue = graph.roots.sort_by(&:id)
-  p queue.map(&:id)
+
   while !queue.empty?
     idx = queue.find_index{|n| !done.include?(n.id) && n.parents.all?{|p| done.include?(p.id)} }
     break unless idx
     node = queue.delete_at(idx)
     done.push(node.id)
     queue = (queue + node.children).sort_by(&:id)
-    p queue.map(&:id)
   end
   done.join
 end
 
-def p1
-  input
-end
-
-p p1
+puts p1
