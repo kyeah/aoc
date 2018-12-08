@@ -1,43 +1,5 @@
 require 'set'
 
-class Graph
-  attr_accessor :vertices
-
-  def initialize
-    @vertices = Set.new
-  end
-
-  def add_edge(a, b)
-    vA = self.vertices.find{ |v| v.id == a }
-    vB = self.vertices.find{ |v| v.id == b }
-    if !vA
-      vA = Vertex.new(a, Array.new, Array.new)
-      self.vertices.add(vA)
-    end
-    if !vB
-      vB = Vertex.new(b, Array.new, Array.new)
-      self.vertices.add(vB)
-    end    
-    vA.children.push(vB)
-    vB.parents.push(vA)
-  end
-
-  def roots_helper(node)
-    if node.parents.empty?
-      [node]
-    else
-      node.parents.map{|n| roots_helper(n)}.flatten
-    end
-  end
-
-  def roots
-    self.vertices.map{|v| self.roots_helper(v)}.flatten.uniq
-  end
-end
-
-class Vertex < Struct.new(:id, :parents, :children)
-end
-
 def input
   Graph.new.tap do |graph|
     File.readlines('./res/day_07.txt').each do |line|
@@ -46,55 +8,73 @@ def input
   end
 end
 
-def p1
-  graph = input
-  done = Array.new
-  queue = graph.roots.sort_by(&:id)
-
-  while !queue.empty?
-    idx = queue.find_index{|n| !done.include?(n.id) && n.parents.all?{|p| done.include?(p.id)} }
-    break unless idx
-    node = queue.delete_at(idx)
-    done.push(node.id)
-    queue = (queue + node.children).sort_by(&:id)
-  end
-  done.join
-end
-
-## UHUGUHU
 class Worker < Struct.new(:node, :time_left)
+  def working?
+    !!self.node
+  end
 end
 
-def p2
+class Vertex < Struct.new(:id, :parents, :children)
+  def ready?(done, working)
+    !done.include?(self.id) &&
+      !working.map(&:node).map(&:id).include?(self.id) &&
+      self.parents.all?{ |p| done.include?(p.id) }
+  end
+end
+
+class Graph
+  attr_accessor :vertices
+
+  def initialize
+    @vertices = Set.new
+  end
+
+  def add_or_insert_vertex(id)
+    v = self.vertices.find{ |v| v.id == id }
+    v || Vertex.new(id, Array.new, Array.new).tap do |v|
+      self.vertices.add(v)
+    end
+  end
+
+  def add_edge(a, b)
+    vA = self.add_or_insert_vertex(a)
+    vB = self.add_or_insert_vertex(b)
+    vA.children.push(vB)
+    vB.parents.push(vA)
+  end
+
+  def roots(nodes = self.vertices)
+    nodes.map do |node|
+      node.parents.empty? ? [node] : roots(node.parents)
+    end.flatten.uniq
+  end
+end
+
+def run(n = 1, withTime = false)
   graph = input
+
   done = Array.new
   queue = graph.roots.sort_by(&:id)
-  workers = Array.new(5){ Worker.new(nil, 0) }
-
+  workers = Array.new(n){ Worker.new(nil, 0) }
   elapsed_time = 0
+  
   while !queue.empty?
-    while true
-      p queue.map(&:id)
-      idx = queue.find_index do |n|
-        !done.include?(n.id) &&
-          n.parents.all?{|p| done.include?(p.id)} &&
-          workers.none?{|w| w.node&.id == n.id}
-      end
-      available_worker = workers.find{|w| !w.node}
-      if idx && available_worker
-        node = queue.delete_at(idx)
-        available_worker.node = node
-        available_worker.time_left = 60 + (node.id.ord - 64)
-      else
-        break
-      end
+    loop do
+      available_worker = workers.find{|w| !w.working?}
+      idx = queue.find_index{ |n| n.ready?(done, workers.select(&:working?)) }
+      break unless available_worker && idx
+
+      node = queue.delete_at(idx)
+      available_worker.node = node
+
+      time = withTime ? 60 + (node.id.ord - 64) : 0
+      available_worker.time_left = time
     end
 
-    break if workers.all?{|w| !w.node}
-    step = workers.select(&:node).compact.map(&:time_left).min
+    break if workers.none?(&:working?)
+    step = workers.select(&:working?).map(&:time_left).min
 
-    workers.each do |w|
-      next if !w.node
+    workers.select(&:working?).each do |w|
       w.time_left -= step
       if w.time_left == 0
         done.push(w.node.id)
@@ -106,8 +86,8 @@ def p2
     elapsed_time += step
   end
 
-  elapsed_time
+  [done.join, elapsed_time]
 end
 
-puts p1
-puts p2
+puts run(1, false)
+puts run(5, true)
