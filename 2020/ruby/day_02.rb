@@ -1,3 +1,5 @@
+PASSWORD_PATTERN = /(\d+)-(\d+) (\w): (.*)/
+
 class Password < Struct.new(:min, :max, :letter, :password)
   def count
     self.password.count(self.letter)
@@ -14,9 +16,8 @@ end
 
 def input
   File.readlines('./res/day_02.txt').map do |x|
-    parts = x.split(' ')
-    minmax = parts[0].split('-').map{|x| Integer(x)}
-    Password.new(minmax[0], minmax[1], parts[1][0], parts[2])
+    min, max, letter, password = PASSWORD_PATTERN.match(x).captures
+    Password.new(Integer(min), Integer(max), letter, password)
   end
 end
 
