@@ -1,5 +1,3 @@
-PASSWORD_PATTERN = /(\d+)-(\d+) (\w): (.*)/
-
 def input
   File.readlines('./res/day_03.txt').map(&:strip)
 end
