@@ -14,26 +14,25 @@ end
 
 def input
   nodes = {}
-  File.readlines('./res/day_07.txt').map do |x|
-    x = x.strip()
-    parent, child_details = x.strip().split("bags contain ").map(&:strip)
-
+  File.readlines('./res/day_07.txt').map(&:strip).map do |x|
     continue if !x
+    parent, child_details = x.split("bags contain ").map(&:strip)
 
     if x.include?("no other bags")
       update_node(nodes, parent)
-    else
-      children = child_details
-        .sub!(".", "") \
-        .split(", ") \
-        .map{ |bag| /(\d+) (\w+ \w+) bag/.match(bag).captures.map(&:strip) } \
-        .map{ |count, name| Child.new(Integer(count), name) }
+      continue
+    end
 
-      update_node(nodes, parent, children)
-
-      children.each do |child|
-        update_node(nodes, child.name, nil, [parent])
-      end
+    children = child_details
+      .sub!(".", "") \
+      .split(", ") \
+      .map{ |bag| /(\d+) (\w+ \w+) bag/.match(bag).captures.map(&:strip) } \
+      .map{ |count, name| Child.new(Integer(count), name) }
+    
+    update_node(nodes, parent, children)
+    
+    children.each do |child|
+      update_node(nodes, child.name, nil, [parent])
     end
   end
   nodes
