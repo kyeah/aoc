@@ -15,14 +15,17 @@ end
 def input
   nodes = {}
   File.readlines('./res/day_07.txt').map do |x|
-    continue if !x.strip()
-    if x.strip().include?("no other bags")
-      update_node(nodes, x.strip().split("bags contain ")[0])
-    else
-      parent, second = x.strip().split("bags contain ").map(&:strip)
-      inner_bags = second.sub!(".", "").split(", ")
+    x = x.strip()
+    parent, child_details = x.strip().split("bags contain ").map(&:strip)
 
-      children = inner_bags
+    continue if !x
+
+    if x.include?("no other bags")
+      update_node(nodes, parent)
+    else
+      children = child_details
+        .sub!(".", "") \
+        .split(", ") \
         .map{ |bag| /(\d+) (\w+ \w+) bag/.match(bag).captures.map(&:strip) } \
         .map{ |count, name| Child.new(Integer(count), name) }
 
@@ -31,42 +34,32 @@ def input
       children.each do |child|
         update_node(nodes, child.name, nil, [parent])
       end
-      #caps = /(\w+) (\w+) bags contain ((\d+) (\w+) (\w+) bags?,? ?)+/.match(x.strip()).captures
     end
   end
   nodes
 end
 
-def count_helper(nodes, node)
-  n = nodes[node]
-  if n.parents
-    n.parents + n.parents.flat_map{ |x| count_helper(nodes, x) }
-  else
-    []
-  end
+def count_helper(nodes, n)
+  return [] if !n.parents    
+  n.parents + n.parents.flat_map{ |x| count_helper(nodes, nodes[x]) }
 end
 
-def count_children_helper(nodes, node)
-  n = nodes[node]
-  if n.children.length > 0
-    n.children.map do |child|
-      child[:count] * count_children_helper(nodes, child.name) + child.count
-    end.sum
-  else
-    return 0
-  end
+def count_children_helper(nodes, n)
+  return 0 if n.children.length == 0
+
+  n.children.map do |child|
+    child.count + child.count * count_children_helper(nodes, nodes[child.name])
+  end.sum
 end
 
 def p1
   nodes = input
-  node = "shiny gold"
-  count_helper(nodes, node).uniq.length
+  count_helper(nodes, nodes["shiny gold"]).uniq.length
 end
 
 def p2
   nodes = input
-  node = "shiny gold"
-  count_children_helper(nodes, node)
+  count_children_helper(nodes, nodes["shiny gold"])
 end
 
 puts p1
