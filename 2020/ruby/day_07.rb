@@ -1,14 +1,14 @@
-class Node < Struct.new(:parents, :name, :children_count, :children); end
+class Node < Struct.new(:parents, :name, :children); end
+class Child < Struct.new(:count, :name); end
 
 def update_node(nodes, name, children = nil, parents = nil)
   name = name.strip()
 
   if nodes[name]
     nodes[name].parents += parents if parents
-    nodes[name].children_count += children.map{|x| x[0]} if children
-    nodes[name].children += children.map{|x| x[1]} if children
+    nodes[name].children += children if children
   else
-    nodes[name] = Node.new(parents || [], name, (children && children.map{|x| x[0]}) || [], (children && children.map{|x| x[1]}) || [])
+    nodes[name] = Node.new(parents || [], name, children || [])
   end
 end
 
@@ -19,14 +19,17 @@ def input
     if x.strip().include?("no other bags")
       update_node(nodes, x.strip().split("bags contain ")[0])
     else
-      outer_bag, second = x.strip().split("bags contain ").map(&:strip)
+      parent, second = x.strip().split("bags contain ").map(&:strip)
       inner_bags = second.sub!(".", "").split(", ")
 
-      inner_names = inner_bags.map{ |bag| /(\d+) (\w+ \w+) bag/.match(bag).captures.map(&:strip) }
-      update_node(nodes, outer_bag, inner_names)
+      children = inner_bags
+        .map{ |bag| /(\d+) (\w+ \w+) bag/.match(bag).captures.map(&:strip) } \
+        .map{ |count, name| Child.new(Integer(count), name) }
 
-      inner_names.each do |count, name|
-        update_node(nodes, name, nil, [outer_bag])
+      update_node(nodes, parent, children)
+
+      children.each do |child|
+        update_node(nodes, child.name, nil, [parent])
       end
       #caps = /(\w+) (\w+) bags contain ((\d+) (\w+) (\w+) bags?,? ?)+/.match(x.strip()).captures
     end
@@ -46,8 +49,8 @@ end
 def count_children_helper(nodes, node)
   n = nodes[node]
   if n.children.length > 0
-    n.children.zip(n.children_count).map do |child, count|
-      Integer(count) * count_children_helper(nodes, child) + Integer(count)
+    n.children.map do |child|
+      child[:count] * count_children_helper(nodes, child.name) + child.count
     end.sum
   else
     return 0
