@@ -1,5 +1,4 @@
 def input
-  list1, list2 = [], []
   File.read('./input/day_03.txt')
 end
 
