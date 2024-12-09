@@ -1,7 +1,7 @@
 OPS = [
   lambda{|a, b| a + b},
   lambda{|a, b| a * b},
-  lambda{|a, b| Integer("#{a}#{b}")},
+  lambda{|a, b| Integer("#{a}#{b}")}, # remove dis for part 1
 ]
 
 class CalibrationTest < Struct.new(:goal, :values)
