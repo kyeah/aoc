@@ -5,6 +5,119 @@ def log(msg)
   p msg
 end
 
+class Block < Struct.new(:start, :end, :size); end
+
+class Disk < Struct.new(:disk, :seen)
+  def can_move_fileblock?(idx)
+    # should have just kept a record of the smallest seen value but yolo
+    self.disk[idx] != "." && !self.seen[self.disk[idx]]
+  end
+  
+  def inbounds?(idx)
+    idx >= 0 && idx < self.disk.length
+  end
+
+  def checksum
+    self.disk.each_with_index.reduce(0) do |accum, (val, idx)|
+      next accum if val == "."
+      accum + val * idx
+    end
+  end
+
+  def compact!
+    free_idx = 0
+    fileblock_idx = self.disk.length - 1
+  
+    while true
+      free_idx += 1 while self.disk[free_idx] != "."
+      fileblock_idx -= 1 while self.disk[fileblock_idx] == "."
+  
+      return if free_idx >= fileblock_idx
+      self.disk[free_idx] = self.disk[fileblock_idx]
+      self.disk[fileblock_idx] = "."
+    end
+  end
+
+  def find_blocksize(start, dir)
+    end_idx = start
+    end_idx += dir while self.disk[end_idx + dir] == self.disk[start]
+    file_size = (end_idx - start).abs + 1
+
+    if dir > 0
+      Block.new(start, end_idx, file_size)
+    else
+      Block.new(end_idx, start, file_size)
+    end
+  end
+
+  def find_freeblock(file_block)
+    log "Finding free size"
+    block = Block.new(0, -1, -1)
+    
+    # Iterate over free blocks until there's one that fits so we can sits
+    while block.size < file_block.size && block.start < file_block.start
+      # Increment past the current free space if we're on one -- if we're here, the space is too small
+      block.start += 1 while self.disk[block.start] === "."
+
+      # Increment until the next free space
+      block.start += 1 while self.inbounds?(block.start) && self.disk[block.start] != "."
+      break if !self.inbounds?(block.start)
+      
+      # Find free block size
+      block = self.find_blocksize(block.start, 1)
+      log "Potential free space: #{block.size}, indexes #{block.start}, #{block.end}"
+    end
+
+    block
+  end
+
+  def compact_2!
+    fileblock_idx_end = self.disk.length - 1
+    seen = {}
+  
+    # Definitely a faster way to do this by keeping track of free blocks and file blocks, and potentially even
+    # keeping a hashmap of free block sizes but I don't want to figure out
+    # merging free blocks together, keeping ordered list, etc. etc.
+    while fileblock_idx_end > 0
+      log self.disk.join("")
+  
+      # Figure out file size
+      while !self.can_move_fileblock?(fileblock_idx_end)
+        fileblock_idx_end -= 1
+        return if !self.inbounds?(fileblock_idx_end)
+      end
+  
+      file_num = self.disk[fileblock_idx_end]
+      file_block = self.find_blocksize(fileblock_idx_end, -1)
+      p "Filesize: #{file_block.size}, Filenum: #{file_num}"
+  
+      # Figure out free size
+      free_block = self.find_freeblock(file_block)
+      log "Free size: #{free_block.size}, indexes #{free_block.start}, #{free_block.end}"
+  
+      self.seen[file_num] = true
+      if free_block.start >= file_block.start
+        # Skip dis file, it's hopeless
+        fileblock_idx_end -= 1 while self.disk[fileblock_idx_end] == file_num
+        log "Skipping #{file_num}"
+        next
+      end
+  
+      # swaparoo
+      log "Swapping #{file_num}"
+
+      while file_block.end >= file_block.start
+        self.disk[free_block.start] = self.disk[file_block.end]
+        self.disk[file_block.end] = "."
+        free_block.start += 1
+        file_block.end -= 1
+      end
+
+      fileblock_idx_end = file_block.end
+    end
+  end
+end
+
 def input
   disk = []
 
@@ -20,108 +133,22 @@ def input
     is_file = !is_file
   end
 
-  disk
+  Disk.new(disk, [])
 end
 
 def part1
   disk = input
-  compact!(disk)
-  checksum(disk)
-end
-
-def compact!(disk)
-  free_idx = 0
-  fileblock_idx = disk.length - 1
-
-  while true
-    free_idx += 1 while disk[free_idx] != "."
-    fileblock_idx -= 1 while disk[fileblock_idx] == "."
-
-    return if free_idx >= fileblock_idx
-    disk[free_idx] = disk[fileblock_idx]
-    disk[fileblock_idx] = "."
-  end
-end
-
-def checksum(disk)
-  disk.each_with_index.reduce(0) do |accum, (val, idx)|
-    next accum if val == "."
-    accum + val * idx
-  end
+  disk.compact!
+  disk.checksum
 end
 
 p part1
 
 def part2
   disk = input
-  compact_2!(disk)
-  p disk.join("")
-  checksum(disk)
-end
-
-def compact_2!(disk)
-  fileblock_idx_end = disk.length - 1
-  seen = {}
-
-  # Definitely a faster way to do this by keeping track of free blocks and file blocks, and potentially even
-  # keeping a hashmap of free block sizes but I don't want to figure out
-  # merging free blocks together, keeping ordered list, etc. etc.
-  while fileblock_idx_end > 0
-    log disk.join("")
-
-    # Figure out file size
-    log "Finding filesize"
-    fileblock_idx_end -= 1 while fileblock_idx_end > 0 && (disk[fileblock_idx_end] == "." || seen[fileblock_idx_end])
-    break if fileblock_idx_end <= 0
-
-    file_num = disk[fileblock_idx_end]
-
-    fileblock_idx_start = fileblock_idx_end
-    fileblock_idx_start -= 1 while disk[fileblock_idx_start - 1] == disk[fileblock_idx_end]
-    file_size = fileblock_idx_end - fileblock_idx_start + 1
-
-    p "Filesize: #{file_size}, Filenum: #{file_num}"
-
-    # Figure out free size
-    log "Finding free size"
-    free_idx_start = 0
-    free_idx_end = -1
-    free_size = -1
-    
-    # Iterate over free blocks until there's one that fits so we can sits
-    while free_size < file_size && free_idx_start <= disk.length - 1
-      # Increment past the current free space if we're on one -- if we're here, the space is too small
-      free_idx_start += 1 while disk[free_idx_start] === "."
-
-      # Increment until the next free space
-      free_idx_start += 1 while disk[free_idx_start] != "." && free_idx_start <= disk.length - 1
-      free_idx_end = free_idx_start
-      free_idx_end += 1 while disk[free_idx_end + 1] == "."
-      free_size = free_idx_end - free_idx_start + 1
-
-      log "Potential free space: #{free_size}, indexes #{free_idx_start}, #{free_idx_end}"
-    end
-
-    log "Free size: #{free_size}, indexes #{free_idx_start}, #{free_idx_end}"
-
-    if free_idx_start >= fileblock_idx_start
-      # Skip dis file, it's hopeless
-      fileblock_idx_end -= 1 while disk[fileblock_idx_end] == file_num
-      log "Skipping #{file_num}"
-      next
-    end
-
-    seen[file_num] = true
-
-    log "Swapping #{file_num}"
-    # swaparoo
-    while fileblock_idx_end >= fileblock_idx_start
-      disk[free_idx_start] = disk[fileblock_idx_end]
-      disk[fileblock_idx_end] = "."
-      free_idx_start += 1
-      fileblock_idx_end -= 1
-    end
-  end
+  disk.compact_2!
+  p disk.disk.join("")
+  disk.checksum
 end
 
 p part2
