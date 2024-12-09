@@ -71,6 +71,16 @@ class Disk < Struct.new(:disk, :seen)
     block
   end
 
+  def swap!(file_block, free_block)
+    # yes this modifies the arguments being passed in, what r u gonna do bout it punk
+    while file_block.end >= file_block.start
+      self.disk[free_block.start] = self.disk[file_block.end]
+      self.disk[file_block.end] = "."
+      free_block.start += 1
+      file_block.end -= 1
+    end
+  end
+
   def compact_2!
     fileblock_idx_end = self.disk.length - 1
     seen = {}
@@ -105,15 +115,8 @@ class Disk < Struct.new(:disk, :seen)
   
       # swaparoo
       log "Swapping #{file_num}"
-
-      while file_block.end >= file_block.start
-        self.disk[free_block.start] = self.disk[file_block.end]
-        self.disk[file_block.end] = "."
-        free_block.start += 1
-        file_block.end -= 1
-      end
-
-      fileblock_idx_end = file_block.end
+      self.swap!(file_block, free_block)
+      fileblock_idx_end = file_block.start - 1
     end
   end
 end
