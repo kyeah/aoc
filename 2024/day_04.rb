@@ -1,3 +1,5 @@
+require "./lib/grid"
+
 PART_2_CORNERS = [
   {x: 1, y: 1},
   {x: -1, y: 1},
@@ -7,27 +9,7 @@ PART_2_CORNERS = [
 
 PART_2_VALID_SEQUENCES = ["SSMM", "SMMS", "MSSM", "MMSS"]
 
-class Grid
-  attr_accessor :grid, :num_rows, :num_cols
-  
-  def initialize(num_rows, num_cols)
-    self.grid = []
-    self.num_rows = num_rows
-    self.num_cols = num_cols
-
-    for i in 0...num_rows
-      self.grid.append(Array.new(num_cols))
-    end
-  end
-
-  def get(x, y)
-    self.grid[y][x]
-  end
-
-  def set(x, y, val)
-    self.grid[y][x] = val
-  end
-
+class CrosswordGrid < Grid
   # For part 1, iterate over each grid cell and check the word in all directions recursively.
   def get_word_count(x, y, word)
     count = 0
@@ -65,7 +47,7 @@ class Grid
   # In part 2, we only have a specific set of valid char sequences on the outside of the "X".
   # We can check the central letter and then go around the corners to verify the sequence.
   def found_mas_at_center(x, y)
-    return false if grid.get(x, y) != "A"
+    return false if self.get(x, y) != "A"
     return false if x == 0 || y == 0 || x == self.num_cols-1 || y == self.num_rows-1
 
     seq = PART_2_CORNERS.map do |corner|
@@ -77,16 +59,7 @@ class Grid
 end
 
 def input
-  lines = File.readlines('./input/day_04.txt')
-  grid ||= Grid.new(lines.length, lines[0].strip.length)
-
-  lines.each_with_index do |line, y_idx|
-    line.strip.chars.each_with_index do |c, x_idx|
-      grid.set(x_idx, y_idx, c)
-    end
-  end
-
-  grid
+  CrosswordGrid.from_file('./input/day_04.txt')
 end
 
 def ans(part1 = true)
