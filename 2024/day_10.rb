@@ -32,16 +32,14 @@ class HikeGrid < Grid
   end
 end
 
-def input
-  HikeGrid.from_file("./input/day_10.txt")
-end
-
-def ans(p1)
-  grid = input
+def ans(filename, p1)
+  grid = HikeGrid.from_file(filename)
   grid.trailheads.reduce(0) do |accum, trailhead|
     accum + grid.trailhead_score(trailhead, p1)
   end
 end
 
-p ans(true)
-p ans(false)
+p ans("./examples/day_10.txt", true)
+p ans("./examples/day_10.txt", false)
+p ans("./input/day_10.txt", true)
+p ans("./input/day_10.txt", false)
