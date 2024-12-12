@@ -1,4 +1,8 @@
-class Direction < Struct.new(:dx, :dy); end
+class Direction < Struct.new(:dx, :dy)
+  def == (other)
+    self.dx == other.dx && self.dy == other.dy
+  end
+end
 
 DIRS = [
   Direction.new(0, -1), 
