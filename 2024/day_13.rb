@@ -24,8 +24,8 @@ require "./lib/grid"
 
 # (self.b.dy)*self.prize.x -  (self.b.dx)*self.prize.y = a*(self.b.dy*a*self.a.dx - self.b.dx*a*self.a.dy)
 
-# b = self.a.dy*self.prize.x - self.a.dx*self.prize.y / (self.a.dy*b*self.b.dx - self.a.dx*b*self.b.dy)
-# a = (self.b.dy)*self.prize.x -  (self.b.dx)*self.prize.y / (self.b.dy*a*self.a.dx - self.b.dx*a*self.a.dy)
+# b = self.a.dy*self.prize.x - self.a.dx*self.prize.y / (self.a.dy*self.b.dx - self.a.dx*self.b.dy)
+# a = (self.b.dy)*self.prize.x -  (self.b.dx)*self.prize.y / (self.b.dy*self.a.dx - self.b.dx*self.a.dy)
 
 # gonna leave my giant scratch pad here hahahaha
 
