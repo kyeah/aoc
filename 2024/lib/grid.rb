@@ -36,12 +36,24 @@ class Grid
     self.grid[y][x]
   end
 
+  def get_pos(pos)
+    self.get(pos.x, pos.y)
+  end
+
   def set(x, y, val)
     self.grid[y][x] = val
   end
+  
+  def set_pos(pos, val)
+    self.set(pos.x, pos.y, val)
+  end
 
-  def self.from_file(filename)
+  def self.from_file(filename, &)
     lines = File.readlines(filename).map(&:strip)
+    self.from_lines(lines, &)
+  end
+
+  def self.from_lines(lines)
     grid = self.new(lines.length, lines[0].length)
 
     lines.each_with_index do |line, row_idx|
@@ -55,5 +67,11 @@ class Grid
     end
 
     grid
+  end
+
+  def print
+    self.grid.each do |row|
+      puts row.join("")
+    end
   end
 end
